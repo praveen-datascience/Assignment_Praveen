@@ -34,7 +34,7 @@ def plot_top_n_unsafest_countries(n):
     #take top n values
     top_n = final_sum_crime_sorted.head(n).set_index('Countries')
     plt.pie(top_n["Cumulative Crime"], labels=top_n.index, autopct='%1.1f%%')
-    plt.title(f"Top {n} Unsafest Countries in between 2009-2012")
+    plt.title(f"Top {n} Unsafest Countries in between 2009-2012 \n (Based on Total Crime % )")
     plt.show()    
 
 userchoice = int( input("Enter number of countries : "))
