@@ -39,3 +39,60 @@ def plot_top_n_unsafest_countries(n):
 
 userchoice = int( input("Enter number of countries : "))
 plot_top_n_unsafest_countries(userchoice)
+
+def plot_diff_crimes_in_unsafest_country():
+    """ This function is used to  find out the 4 different crimes in Most dangerous
+        country.
+        Here I used multi line plot to display crime values in 3 different years
+    """
+    # group the original dataset by country and calculate the sum of the total crimes
+    df_crime_countries = df_crime.groupby('Countries')['Total'].sum()
+    # sort the countries based on cumulative crime and get the top 1
+    Top_1 = df_crime_countries.sort_values(ascending=False).head(1)
+    # get the crime data for only the top 1 country from the original dataset
+    df_top5 = df_crime[df_crime['Countries'].isin(Top_1.index)]
+
+    # group the top 1 dataset by country and year and calculate the sum of the first four crimes
+    df_top1_crime = df_top5.groupby(['Countries', 'Year'])['Murder', 'Robbery', 'Theft','Child Sex Offences'].sum().reset_index()
+    
+    years = df_top1_crime.iloc[:,1]
+    y1 = df_top1_crime.iloc[0:,2]
+    y2 = df_top1_crime.iloc[0:,3]
+    y3 = df_top1_crime.iloc[0:,4]
+    y4 = df_top1_crime.iloc[0:,5]
+
+    data = {
+        
+        'Year': years,
+        'Murder': y1,
+        'Robbery': y2,
+        'Theft': y3,
+        'Child Sex Offences': y4,
+    }
+
+    # Create a figure and axis object
+    fig, ax = plt.subplots()
+
+    # Loop through each crime and plot its line
+    for crime in ['Murder', 'Robbery', 'Theft','Child Sex Offences']:
+        ax.plot(data['Year'], data[crime], label=crime, marker='o')
+
+    # Set the title, x-label and y-label
+    ax.set_title('Crime Rates over the Years')
+    ax.set_xlabel('Year')
+    ax.set_ylabel('Number of Incidents')
+
+    # Set the x-axis tick locations and labels
+    ax.set_xticks(data['Year'])
+    ax.set_xticklabels(data['Year'])
+
+    # Move x-axis tick labels outside of the graph
+    fig.subplots_adjust(bottom=0)
+
+    # Set the legend
+    ax.legend()
+
+    # Show the plot
+    plt.show()
+    
+plot_diff_crimes_in_unsafest_country()
