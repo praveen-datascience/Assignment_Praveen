@@ -33,12 +33,14 @@ def plot_top_n_unsafest_countries(n):
     final_sum_crime_sorted = final_sum_crime.sort_values(by='Cumulative Crime', ascending=False)
     #take top n values
     top_n = final_sum_crime_sorted.head(n).set_index('Countries')
-    plt.pie(top_n["Cumulative Crime"], labels=top_n.index, autopct='%1.1f%%')
-    plt.title(f"Top {n} Unsafest Countries in between 2009-2012 \n (Based on Total Crime % )")
-    plt.show()    
+    return top_n
+        
 
 userchoice = int( input("Enter number of countries : "))
-plot_top_n_unsafest_countries(userchoice)
+top_n = plot_top_n_unsafest_countries(userchoice)
+plt.pie(top_n["Cumulative Crime"], labels=top_n.index, autopct='%1.1f%%')
+plt.title(f"Top {userchoice} Unsafest Countries in between 2009-2012 \n (Based on Total Crime % )")
+plt.show()
 
 def plot_diff_crimes_in_unsafest_country():
     """ This function is used to  find out the 4 different crimes in Most dangerous
