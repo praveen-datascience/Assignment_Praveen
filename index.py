@@ -96,3 +96,32 @@ def plot_diff_crimes_in_unsafest_country():
     plt.show()
     
 plot_diff_crimes_in_unsafest_country()
+
+def plot_south_asian_crime():
+    """ This function is used to  find out the total crimes in
+        south asian countries in between 2009-2012.
+        Here I used Bar chart to display cumulative values based on
+        countries
+    """
+    final_sum_crime = calc_cumulative_Crime()
+    # Filter the dataframe to only include Bangladesh , Bhutan , India , Pakistan , Nepal , and Sri Lanka
+    filtered_df = final_sum_crime[final_sum_crime['Countries'].isin(['Sri Lanka', 'India','Pakistan','Bangladesh','Nepal','Bhutan'])]
+
+    # Create a figure and axis object
+    fig, ax = plt.subplots()
+
+    # Plot the data using a bar chart
+    ax.bar(filtered_df['Countries'], filtered_df['Cumulative Crime'])
+
+    # Set the x-label and y-label
+    ax.set_xlabel('Country')
+    ax.set_ylabel('Total Crimes')
+
+    # Set the title of the plot
+    ax.set_title('Total Crimes by South Asian Countries during 2009-2012')
+
+    # Display the plot
+    plt.show()
+
+
+plot_south_asian_crime()
