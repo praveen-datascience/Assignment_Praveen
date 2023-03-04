@@ -54,6 +54,8 @@ def plot_diff_crimes_in_unsafest_country():
 
     # group the top 1 dataset by country and year and calculate the sum of the first four crimes
     df_top1_crime = df_top5.groupby(['Countries', 'Year'])['Murder', 'Robbery', 'Theft','Child Sex Offences'].sum().reset_index()
+    #store top country name to display in title
+    top_country_name = df_top1_crime['Countries'][0]
     
     years = df_top1_crime.iloc[:,1]
     y1 = df_top1_crime.iloc[0:,2]
@@ -78,7 +80,7 @@ def plot_diff_crimes_in_unsafest_country():
         ax.plot(data['Year'], data[crime], label=crime, marker='o')
 
     # Set the title, x-label and y-label
-    ax.set_title('Crime Rates over the Years')
+    ax.set_title('Crime Rates over the Years in ' + top_country_name)
     ax.set_xlabel('Year')
     ax.set_ylabel('Number of Incidents')
 
