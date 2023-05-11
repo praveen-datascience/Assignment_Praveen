@@ -1,137 +1,111 @@
 # -*- coding: utf-8 -*-
 """
-Created on Fri Mar  3 06:50:19 2023
+Created on Wed May 10 16:34:04 2023
 
-@author: praveen
+@author: Anthonimuthu Praveenkumar
 """
+#required libraries
+import numpy as np
 import pandas as pd
+import seaborn as sns
 import matplotlib.pyplot as plt
+from scipy.stats import pearsonr
+from sklearn.decomposition import PCA
+from IPython.display import clear_output
+from sklearn.cluster import KMeans
+import sklearn.cluster as cluster
+import sklearn.metrics as skmet
+
+
+
+def read_my_excel(filename):
+    """ This function is used to read excel file and return dataframe """
+    excel_result = pd.read_excel(filename)
+    return excel_result
 
 #read csv file
-df_crime = pd.read_csv("nationality_and_offence2.csv")
-#check first 5 rows
-print(df_crime.head())
-#Check for missing values
-missing_val = df_crime.isnull().sum()
+df_data = read_my_excel("world_bank_data.xls")
+#check initial dataframe
+print(df_data.head())
 
-
-
-def calc_cumulative_Crime():
-    """ This function is used to group the data based on different countries
-        so that it can be reusable for different plots.
-    """
-    #group results based on Countries column
-    df_crime_countries = df_crime.groupby('Countries')
-    #calculate the total crime
-    df_sum_crime = df_crime_countries['Total'].sum()
-    #set a name for the unnamed calculated column
-    final_sum_crime = df_sum_crime.reset_index(name='Cumulative Crime')
-    return final_sum_crime
-    
-def plot_top_n_unsafest_countries(n):
-    """ This function is used to take number value n as an argument
-        and find out the top n Unsafest Countries.
-        Here I used pie chart to display cumulative values based on
-        countries
-    """
-    final_sum_crime = calc_cumulative_Crime()
-    #order the values based on descending order
-    final_sum_crime_sorted = final_sum_crime.sort_values(by='Cumulative Crime', ascending=False)
-    #take top n values
-    top_n = final_sum_crime_sorted.head(n).set_index('Countries')
-    return top_n
-        
-
-userchoice = int( input("Enter number of countries : "))
-top_n = plot_top_n_unsafest_countries(userchoice)
-plt.pie(top_n["Cumulative Crime"], labels=top_n.index, autopct='%1.1f%%')
-plt.title(f"Top {userchoice} Unsafest Countries in between 2009-2012 \n (Based on Total Crime % )")
-plt.show()
-
-def plot_diff_crimes_in_unsafest_country():
-    """ This function is used to  find out the 4 different crimes in Most dangerous
-        country.
-        Here I used multi line plot to display crime values in 3 different years
-    """
-    # group the original dataset by country and calculate the sum of the total crimes
-    df_crime_countries = df_crime.groupby('Countries')['Total'].sum()
-    # sort the countries based on cumulative crime and get the top 1
-    Top_1 = df_crime_countries.sort_values(ascending=False).head(1)
-    # get the crime data for only the top 1 country from the original dataset
-    df_top5 = df_crime[df_crime['Countries'].isin(Top_1.index)]
-
-    # group the top 1 dataset by country and year and calculate the sum of the first four crimes
-    df_top1_crime = df_top5.groupby(['Countries', 'Year'])['Murder', 'Robbery', 'Theft','Child Sex Offences'].sum().reset_index()
-    #store top country name to display in title
-    top_country_name = df_top1_crime['Countries'][0]
-    
-    years = df_top1_crime.iloc[:,1]
-    y1 = df_top1_crime.iloc[0:,2]
-    y2 = df_top1_crime.iloc[0:,3]
-    y3 = df_top1_crime.iloc[0:,4]
-    y4 = df_top1_crime.iloc[0:,5]
-
-    data = {
-        
-        'Year': years,
-        'Murder': y1,
-        'Robbery': y2,
-        'Theft': y3,
-        'Child Sex Offences': y4,
-    }
-
-    # Create a figure and axis object
-    fig, ax = plt.subplots()
-
-    # Loop through each crime and plot its line
-    for crime in ['Murder', 'Robbery', 'Theft','Child Sex Offences']:
-        ax.plot(data['Year'], data[crime], label=crime, marker='o')
-
-    # Set the title, x-label and y-label
-    ax.set_title('Crime Rates over the Years in ' + top_country_name)
-    ax.set_xlabel('Year')
-    ax.set_ylabel('Number of Incidents')
-
-    # Set the x-axis tick locations and labels
-    ax.set_xticks(data['Year'])
-    ax.set_xticklabels(data['Year'])
-
-    # Move x-axis tick labels outside of the graph
-    fig.subplots_adjust(bottom=0)
-
-    # Set the legend
-    ax.legend()
-
-    # Show the plot
+def display_heat(my_data):
+    """ This function is used to find out the correlation between columns """
+    my_data2 = my_data
+    my_data2.set_index('Country Name', inplace=True)
+    columns = ['co2_emission', 'agri_machinery' , 'forest_area']
+    corr_matrix = my_data2[columns].corr()
+    print(corr_matrix)
+    sns.heatmap(corr_matrix, cmap='coolwarm', annot=True)
     plt.show()
     
-plot_diff_crimes_in_unsafest_country()
+display_heat(df_data)
 
-def plot_south_asian_crime():
-    """ This function is used to  find out the total crimes in
-        south asian countries in between 2009-2012.
-        Here I used Bar chart to display cumulative values based on
-        countries
-    """
-    final_sum_crime = calc_cumulative_Crime()
-    # Filter the dataframe to only include Bangladesh , Bhutan , India , Pakistan , Nepal , and Sri Lanka
-    filtered_df = final_sum_crime[final_sum_crime['Countries'].isin(['Sri Lanka', 'India','Pakistan','Bangladesh','Nepal','Bhutan'])]
+#selecting required columns
+selected_features = ["co2_emission", "agri_machinery"]
+#empty and null values are cleaned
+df_data = df_data.dropna(subset=selected_features)
+#copy cleaned required data
+data = df_data[selected_features].copy()
+print(data.head())
 
-    # Create a figure and axis object
-    fig, ax = plt.subplots()
+#kmeans-steps
+#step1 : scale the data so that no one column will not dominate other column
+#here i used the range from 1 to 10
+data = ((data - data.min()) / (data.max() - data.min())) * 10 + 1
+data.describe()
 
-    # Plot the data using a bar chart
-    ax.bar(filtered_df['Countries'], filtered_df['Cumulative Crime'])
+#step2 : Initialize random centroids
+def choose_random_centroids(data, k):
+    """ This function is used to select random centre values for each column """
+    centroids = []
+    for i in range(k):
+        #apply method used to iterate through each column and sample method select random value in each column
+        centroid = data.apply(lambda x: float(x.sample()))
+        centroids.append(centroid)
+    return pd.concat(centroids, axis=1)
 
-    # Set the x-label and y-label
-    ax.set_xlabel('Country')
-    ax.set_ylabel('Total Crimes')
+#function calling
+centroids = choose_random_centroids(data, 4)
+#check centre points
+#print(centroids)
 
-    # Set the title of the plot
-    ax.set_title('Total Crimes by South Asian Countries during 2009-2012')
+#step3 : claculate the distance for each data points from centroid using geometry distance formulae
+def find_labels(data, centroids):
+    """ This function is used to find out index of minimum  value of each centroid column """
+    distances = centroids.apply(lambda x: np.sqrt(((data - x) ** 2).sum(axis=1)))
+    return distances.idxmin(axis=1)
 
-    # Display the plot
+cluster_labels = find_labels(data, centroids)
+#print(cluster_labels)
+#cluster_labels.value_counts()
+
+#step4 : update the centroids
+def updated_centroids(data, labels, k):
+    """ This function is used to update the centroids by taking geometric mean value """
+    centroids = data.groupby(cluster_labels).apply(lambda x: np.exp(np.log(x).mean())).T
+    return centroids
+
+def plot_clusters(data, labels, centroids, iteration):
+    """ This function is used to plot each point under each cluster """
+    #pca : used to visualize data in different dimension
+    pca = PCA(n_components=2)
+    data_2d = pca.fit_transform(data)
+    centroids_2d = pca.transform(centroids.T)
+    clear_output(wait=True)
+    plt.title(f'Iteration {iteration}')
+    plt.scatter(x=data_2d[:,0], y=data_2d[:,1], c=labels)
+    plt.scatter(x=centroids_2d[:,0], y=centroids_2d[:,1])
     plt.show()
 
+max_iterations = 100
+centroid_count = 4
+centroids = choose_random_centroids(data, centroid_count)
+old_centroids = pd.DataFrame()
+iteration = 1
 
-plot_south_asian_crime()
+while iteration < max_iterations and not centroids.equals(old_centroids):
+    old_centroids = centroids
+    labels = find_labels(data, centroids)
+    centroids = updated_centroids(data, cluster_labels, centroid_count)
+    plot_clusters(data, cluster_labels, centroids, iteration)
+    iteration += 1
